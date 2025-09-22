@@ -7,8 +7,6 @@ import sys
 # Accept arguments from Streamlit or CLI
 target_username = sys.argv[1]
 max_posts = int(sys.argv[2])
-login_user = sys.argv[3]
-login_pass = sys.argv[4]
 
 # Settings
 usernames = [target_username]
@@ -24,15 +22,23 @@ cutoff_map = {
 }
 cutoff_date = now - cutoff_map[date_range] if date_range in ['7d', '30d'] else cutoff_map.get(date_range)
 
-# Login and session handling
+# Load session
 L = instaloader.Instaloader()
-L.load_session_from_file('zebra.4500860')  # This uses zebra.4500860-session
-
+try:
+    L.load_session_from_file('zebra.4500860')  # This uses zebra.4500860-session
+except Exception as e:
+    print(f"❌ Failed to load session: {e}")
+    sys.exit(1)
 
 # Scrape each profile
 for username in usernames:
     print(f"\n🔍 Scraping: {username}")
-    profile = instaloader.Profile.from_username(L.context, username)
+    try:
+        profile = instaloader.Profile.from_username(L.context, username)
+    except Exception as e:
+        print(f"❌ Failed to load profile {username}: {e}")
+        continue
+
     followers = profile.followers
 
     # Log follower count
