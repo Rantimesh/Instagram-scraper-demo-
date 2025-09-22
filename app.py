@@ -1,19 +1,22 @@
 import streamlit as st
 import subprocess
 
-st.set_page_config(page_title="Instagram Scraper Demo", layout="centered")
-st.title(" Instagram Scraper Demo")
+st.title("Instagram Scraper Demo")
+st.write("This tool scrapes Instagram posts, tracks engagement, and lets you manually tag video types.")
 
-st.markdown("This tool scrapes Instagram posts, tracks engagement, and lets you manually tag video types.")
+insta_user = st.text_input("Your Instagram Username")
+insta_pass = st.text_input("Your Instagram Password", type="password")
+target_profile = st.text_input("Target Profile to Scrape")
+max_posts = st.slider("Max posts to scrape", min_value=1, max_value=100, value=10)
 
-#  Inputs
-profile = st.text_input("Enter Instagram username")
-max_posts = st.slider("Max posts to scrape", 10, 100, 50)
-run_button = st.button("Run Scraper")
-
-#  Trigger scraper
-if run_button and profile:
-    st.info(f"Scraping {max_posts} posts from @{profile}...")
-    result = subprocess.run(["python", "scraper.py", profile, str(max_posts)], capture_output=True, text=True)
-    st.text(result.stdout)
-    st.success("✅ Scrape complete. CSV saved.")
+if st.button("Run Scraper"):
+    if not insta_user or not insta_pass or not target_profile:
+        st.error("Please fill in all fields.")
+    else:
+        st.info(f"Scraping {max_posts} posts from @{target_profile}...")
+        result = subprocess.run(
+            ["python3", "Scraper.py", target_profile, str(max_posts), insta_user, insta_pass],
+            capture_output=True, text=True
+        )
+        st.text(result.stdout)
+        st.success("✅ Scrape complete. CSV saved.")
