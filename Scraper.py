@@ -26,11 +26,18 @@ cutoff_date = now - cutoff_map[date_range] if date_range in ['7d', '30d'] else c
 L = instaloader.Instaloader()
 session_file = f"{login_user}-session"
 
-if os.path.exists(session_file):
-    L.load_session_from_file(login_user)
-else:
-    L.login(login_user, login_pass)
+try:
+    if os.path.exists(session_file):
+        L.load_session_from_file(login_user)
+    else:
+        L.login(login_user, login_pass)
+        L.save_session_to_file()
+except instaloader.TwoFactorAuthRequiredException:
+    print("🔐 Two-factor authentication required.")
+    code = input("Enter 2FA code: ")
+    L.two_factor_login(code)
     L.save_session_to_file()
+
 
 # Scrape posts
 for username in usernames:
@@ -101,3 +108,4 @@ for username in usernames:
             count += 1
 
     print(f"✅ Done scraping {username}. {count} new posts added.")
+
