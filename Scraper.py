@@ -29,7 +29,7 @@ cutoff_date = now - cutoff_map[date_range] if date_range in ['7d', '30d'] else c
 
 #  Load session
 L = instaloader.Instaloader()
-L.load_session_from_file('zebra.4500860')  # Replace with your actual username
+L.load_session_from_file('session-zebra.4500860')  # Replace with your actual username
 
 #  Loop through profiles
 for username in usernames:
@@ -108,3 +108,4 @@ for username in usernames:
             count += 1
 
     print(f"✅ Done scraping {username}. {count} new posts added.")
+
