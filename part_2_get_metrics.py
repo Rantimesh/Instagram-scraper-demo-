@@ -6,7 +6,7 @@ from datetime import datetime
 from apify_client import ApifyClient
 
 # 🔧 HARDCODED CONFIGURATION
-APIFY_TOKEN = 'apify_api_9NasUpQhiOBHlgcZhfFleb8KhckYS42CSBIm'
+APIFY_TOKEN = 'Insert token' #change to actual token
 INSTALOADER_SESSION = 'zebra.4500860'
 
 # 📁 Ensure output folders exist
