@@ -5,17 +5,19 @@ import asyncio
 
 from playwright.async_api import async_playwright
 
-# 🔧 HARDCODED CONFIGURATION
-INSTAGRAM_USERNAME = 'zebra.4500860'
-INSTAGRAM_PASSWORD = 'Meshack@7474'
+# 🔧 CONFIGURATION FROM ENVIRONMENT VARIABLES
+INSTAGRAM_USERNAME = os.getenv('INSTAGRAM_USERNAME', '')
+INSTAGRAM_PASSWORD = os.getenv('INSTAGRAM_PASSWORD', '')
 
 
-# 📋 LIST OF TARGET USERS (Maximum 10)
+# 📋 LIST OF TARGET USERS (Maximum 10) - can be passed as argument
+import sys
+import argparse
+
 TARGET_USERS = [
     'she_is_ada_',
     '_olasubomi_',
     '5thkind_'
-    # Add up to 10 usernames total
 ]
 
 SESSION_FILE = 'instagram_session.json'
@@ -318,4 +320,14 @@ async def scrape_reels():
         print(f"{'='*70}\n")
 
 if __name__ == "__main__":
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Scrape Instagram reels URLs')
+    parser.add_argument('--users', nargs='+', help='List of Instagram usernames to scrape')
+    args = parser.parse_args()
+    
+    # Override TARGET_USERS if provided via command line
+    if args.users:
+        TARGET_USERS = args.users
+        print(f"📋 Using usernames from command line: {', '.join(TARGET_USERS)}")
+    
     asyncio.run(scrape_reels())
