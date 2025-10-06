@@ -8,6 +8,8 @@ The application consists of two main components:
 1. **Python Scrapers**: Automated scripts using Playwright and Apify to collect Instagram data
 2. **Web Dashboard**: React/TypeScript SPA for visualizing metrics and managing scraper operations
 
+**Current Status**: Dashboard displays real analytics data from CSV files (she_is_ada_, 5thkind_) including 7 reels with actual views, likes, comments, captions, and hashtags. All pages show real data with transparent messaging for unavailable metrics (follower demographics, detailed run history).
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -31,13 +33,13 @@ Preferred communication style: Simple, everyday language.
 **Routing**: Wouter for lightweight client-side routing
 
 **Key Pages**:
-- Dashboard: Overview analytics with charts and metrics
-- Configuration: Scraper settings and credentials
-- Scraper Control: Manual scraper execution
-- Reel Analytics: Detailed reel performance data
-- Followers: Demographic and growth analytics
-- Video Tagging: Manual categorization interface
-- Run History: Scraper execution logs
+- Dashboard: Overview analytics with real engagement rates, top hashtags, and follower growth charts
+- Configuration: Scraper settings and credentials (file-based storage in /tmp/scraper_config)
+- Scraper Control: Manual scraper execution with creator selection
+- Reel Analytics: Real performance metrics calculated from CSV data (7 reels, 26.0% avg engagement)
+- Followers: Creator list and reel counts; demographic data noted as unavailable from CSV scraper
+- Video Tagging: Manual categorization with real reel data and "Tag Video" buttons
+- Run History: Current status tracking; detailed history will be available when runs are persisted to database
 
 **Component Architecture**:
 - Atomic design with reusable UI components
@@ -64,13 +66,23 @@ Preferred communication style: Simple, everyday language.
 2. Express spawns Python child processes
 3. Python scripts scrape Instagram and write CSV files
 4. API reads CSV files and serves data to frontend
-5. Frontend displays analytics
+5. Frontend displays real analytics calculated from CSV data
+
+**Real Data Implementation**:
+- All pages display actual metrics from CSV files
+- Dashboard shows: 7 reels, 26.0% engagement, top hashtags (#trending, #music, #viral)
+- Reel Analytics calculates: avg views (162), total reach (1.1K), top performer (258 views)
+- Video Tagging shows real captions and metrics with functional "Tag Video" buttons
+- Followers page shows 2 tracked creators with transparent messaging for unavailable demographics
+- Run History shows current scraper status with note that detailed history requires database persistence
 
 **CSV Ingestion System**:
 - Reads CSV files from `data/` directory
-- Parses reel metrics (likes, comments, views, captions, hashtags)
-- Extracts Instagram IDs from URLs
-- Serves aggregated data to frontend
+- Parses reel metrics (likes, comments, views, captions, hashtags, mentions)
+- Extracts Instagram IDs from URLs and usernames from filenames
+- Column mapping: date, likes, views, comments, video_url, caption, hashtags, mentions
+- Serves aggregated real data to frontend for all analytics pages
+- Currently processing 2 creators (she_is_ada_, 5thkind_) with 7 total reels
 
 **Scraper Orchestration**:
 - Spawns Python scripts as child processes
