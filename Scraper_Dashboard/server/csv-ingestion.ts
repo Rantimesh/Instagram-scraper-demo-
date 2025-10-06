@@ -26,6 +26,11 @@ export async function parseCSV(filePath: string): Promise<ReelMetricData[]> {
     return [];
   }
 
+  // Extract username from filename (e.g., "she_is_ada__reels_metrics.csv" -> "she_is_ada_")
+  const filename = path.basename(filePath);
+  const usernameMatch = filename.match(/^(.+?)_reels_metrics\.csv$/);
+  const username = usernameMatch ? usernameMatch[1] : '';
+
   const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
   const data: ReelMetricData[] = [];
 
@@ -38,16 +43,16 @@ export async function parseCSV(filePath: string): Promise<ReelMetricData[]> {
       });
 
       data.push({
-        username: row['Creator'] || row['Username'] || '',
-        url: row['Reel URL'] || row['URL'] || '',
-        likes: parseInt(row['Likes'] || '0'),
-        comments: parseInt(row['Comments'] || '0'),
-        views: parseInt(row['Views'] || '0'),
-        caption: row['Caption'] || '',
-        hashtags: row['Hashtags'] || '',
-        mentions: row['Mentions'] || '',
-        videoUrl: row['Video URL'] || '',
-        datePosted: row['Date Posted'] || row['Date'] || '',
+        username: username,
+        url: row['video_url'] || row['url'] || '',
+        likes: parseInt(row['likes'] || '0'),
+        comments: parseInt(row['comments'] || '0'),
+        views: parseInt(row['views'] || '0'),
+        caption: row['caption'] || '',
+        hashtags: row['hashtags'] || '',
+        mentions: row['mentions'] || '',
+        videoUrl: row['video_url'] || '',
+        datePosted: row['date'] || '',
       });
     }
   }

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { runScraper, getScraperStatus } from "./scraper";
 import { findCSVFiles, parseCSV, extractInstagramId } from "./csv-ingestion";
 import { z } from "zod";
+import { scraperConfigSchema, instagramCredentialsSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/scrape/run", async (req, res) => {
@@ -70,6 +71,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       res.status(500).json({ 
         error: error instanceof Error ? error.message : "Failed to fetch creators" 
+      });
+    }
+  });
+
+  app.post("/api/config", async (req, res) => {
+    try {
+      const validatedConfig = scraperConfigSchema.parse(req.body);
+      const config = await storage.saveConfig(validatedConfig);
+      res.json({ success: true, config });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ 
+          error: "Invalid configuration data",
+          details: error.errors
+        });
+      } else {
+        res.status(500).json({ 
+          error: error instanceof Error ? error.message : "Failed to save configuration" 
+        });
+      }
+    }
+  });
+
+  app.get("/api/config", async (req, res) => {
+    try {
+      const config = await storage.getConfig();
+      res.json(config || {
+        targetUsername: "",
+        scheduleFrequency: "24h",
+        autoTag: false,
+        emailNotifications: false
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to fetch configuration" 
+      });
+    }
+  });
+
+  app.post("/api/credentials", async (req, res) => {
+    try {
+      const validatedCredentials = instagramCredentialsSchema.parse(req.body);
+      const credentials = await storage.saveCredentials(validatedCredentials);
+      res.json({ success: true, message: "Credentials saved successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ 
+          error: "Invalid credentials data",
+          details: error.errors
+        });
+      } else {
+        res.status(500).json({ 
+          error: error instanceof Error ? error.message : "Failed to save credentials" 
+        });
+      }
+    }
+  });
+
+  app.get("/api/credentials", async (req, res) => {
+    try {
+      const credentials = await storage.getCredentials();
+      res.json(credentials || {
+        instagramUsername: "",
+        instagramPassword: ""
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to fetch credentials" 
       });
     }
   });

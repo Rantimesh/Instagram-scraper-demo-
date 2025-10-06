@@ -50,6 +50,13 @@ export const scrapeRuns = pgTable("scrape_runs", {
   reelsScraped: integer("reels_scraped").default(0),
 });
 
+export const settings = pgTable("settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(),
+  value: jsonb("value").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -59,6 +66,19 @@ export const insertCreatorSchema = createInsertSchema(creators);
 export const insertReelSchema = createInsertSchema(reels);
 export const insertReelMetricsSchema = createInsertSchema(reelMetrics);
 export const insertScrapeRunSchema = createInsertSchema(scrapeRuns);
+export const insertSettingsSchema = createInsertSchema(settings);
+
+export const scraperConfigSchema = z.object({
+  targetUsername: z.string(),
+  scheduleFrequency: z.string(),
+  autoTag: z.boolean(),
+  emailNotifications: z.boolean(),
+});
+
+export const instagramCredentialsSchema = z.object({
+  instagramUsername: z.string().min(1, "Instagram username is required"),
+  instagramPassword: z.string().min(1, "Instagram password is required"),
+});
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -66,3 +86,6 @@ export type Creator = typeof creators.$inferSelect;
 export type Reel = typeof reels.$inferSelect;
 export type ReelMetrics = typeof reelMetrics.$inferSelect;
 export type ScrapeRun = typeof scrapeRuns.$inferSelect;
+export type Settings = typeof settings.$inferSelect;
+export type ScraperConfig = z.infer<typeof scraperConfigSchema>;
+export type InstagramCredentials = z.infer<typeof instagramCredentialsSchema>;
