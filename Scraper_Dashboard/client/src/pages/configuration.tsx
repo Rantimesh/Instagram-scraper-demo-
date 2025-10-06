@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Sidebar from "@/components/sidebar";
 import ThemeToggle from "@/components/theme-toggle";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Configuration() {
   const [formData, setFormData] = useState({
@@ -21,13 +22,73 @@ export default function Configuration() {
     instagramPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then(res => res.json())
+      .then(data => {
+        if (data.targetUsername) {
+          setFormData(data);
+        }
+      })
+      .catch(console.error);
+
+    fetch("/api/credentials")
+      .then(res => res.json())
+      .then(data => {
+        if (data.instagramUsername) {
+          setInstagramCredentials(data);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Config saved:', formData);
+    try {
+      const response = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Configuration saved successfully",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save configuration",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSaveCredentials = () => {
-    console.log('Credentials saved:', instagramCredentials);
+  const handleSaveCredentials = async () => {
+    try {
+      const response = await fetch("/api/credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(instagramCredentials)
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Instagram credentials saved successfully",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save credentials",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -58,14 +119,17 @@ export default function Configuration() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="targetUsername">Target Instagram Username</Label>
+                    <Label htmlFor="targetUsername">Target Instagram Usernames (comma-separated)</Label>
                     <Input
                       id="targetUsername"
-                      placeholder="@username"
+                      placeholder="username1, username2, username3 (up to 10)"
                       value={formData.targetUsername}
                       onChange={(e) => handleInputChange("targetUsername", e.target.value)}
                       data-testid="input-target-username"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Enter multiple usernames separated by commas (maximum 10 profiles)
+                    </p>
                   </div>
 
                   <div className="space-y-2">

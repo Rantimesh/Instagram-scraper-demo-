@@ -1,7 +1,17 @@
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+
+interface Credentials {
+  instagramUsername: string;
+  instagramPassword: string;
+}
 
 export default function Sidebar() {
   const [location] = useLocation();
+
+  const { data: credentials } = useQuery<Credentials>({
+    queryKey: ['/api/credentials'],
+  });
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: "fas fa-chart-line" },
@@ -12,6 +22,10 @@ export default function Sidebar() {
     { path: "/tagging", label: "Video Tagging", icon: "fas fa-tags" },
     { path: "/history", label: "Run History", icon: "fas fa-history" },
   ];
+
+  const isConnected = credentials?.instagramUsername && credentials.instagramUsername.length > 0;
+  const displayUsername = isConnected ? `@${credentials.instagramUsername}` : "Not connected";
+  const statusText = isConnected ? "Connected" : "Click to configure";
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
@@ -46,15 +60,17 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-border">
-        <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors cursor-pointer">
-          <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-            <i className="fas fa-user text-secondary-foreground text-sm"></i>
+        <Link href="/configuration">
+          <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors cursor-pointer">
+            <div className={`w-8 h-8 ${isConnected ? 'bg-secondary' : 'bg-muted'} rounded-full flex items-center justify-center`}>
+              <i className={`fas fa-user ${isConnected ? 'text-secondary-foreground' : 'text-muted-foreground'} text-sm`}></i>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate" data-testid="user-profile">{displayUsername}</p>
+              <p className={`text-xs ${isConnected ? 'text-green-500' : 'text-muted-foreground'}`}>{statusText}</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate" data-testid="user-profile">@instagram_user</p>
-            <p className="text-xs text-muted-foreground">Connected</p>
-          </div>
-        </div>
+        </Link>
       </div>
     </div>
   );

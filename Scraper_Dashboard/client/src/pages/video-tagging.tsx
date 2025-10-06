@@ -2,6 +2,10 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import CreatorSelector from "@/components/creator-selector";
+import Sidebar from "@/components/sidebar";
+import ThemeToggle from "@/components/theme-toggle";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -16,123 +20,101 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const mockReels = [
-  {
-    id: "1",
-    thumbnail: "https://picsum.photos/seed/reel1/400/600",
-    caption: "How to create engaging content that resonates with your audience...",
-    views: "847K",
-    likes: "52.3K",
-    comments: "1.2K",
-    videoType: null,
-  },
-  {
-    id: "2",
-    thumbnail: "https://picsum.photos/seed/reel2/400/600",
-    caption: "Behind the scenes of our latest project and creative process...",
-    views: "623K",
-    likes: "41.8K",
-    comments: "892",
-    videoType: "Behind the Scenes",
-  },
-  {
-    id: "3",
-    thumbnail: "https://picsum.photos/seed/reel3/400/600",
-    caption: "Quick entertainment video that went viral last week...",
-    views: "1.2M",
-    likes: "89.4K",
-    comments: "2.1K",
-    videoType: null,
-  },
-  {
-    id: "4",
-    thumbnail: "https://picsum.photos/seed/reel4/400/600",
-    caption: "Product demonstration and detailed review of our new features...",
-    views: "456K",
-    likes: "28.7K",
-    comments: "567",
-    videoType: "Product Demo",
-  },
-  {
-    id: "5",
-    thumbnail: "https://picsum.photos/seed/reel5/400/600",
-    caption: "Daily lifestyle vlog showing our typical work routine...",
-    views: "389K",
-    likes: "23.1K",
-    comments: "445",
-    videoType: null,
-  },
-  {
-    id: "6",
-    thumbnail: "https://picsum.photos/seed/reel6/400/600",
-    caption: "Educational tutorial on advanced techniques and best practices...",
-    views: "712K",
-    likes: "48.9K",
-    comments: "1.5K",
-    videoType: "Educational",
-  },
-];
+interface ReelData {
+  username: string;
+  url: string;
+  likes: number;
+  comments: number;
+  views: number;
+  caption: string;
+  videoUrl: string;
+}
 
 export default function VideoTagging() {
-  const [selectedReel, setSelectedReel] = useState<typeof mockReels[0] | null>(null);
+  const [selectedReel, setSelectedReel] = useState<ReelData | null>(null);
   const [videoType, setVideoType] = useState("");
+  const [selectedCreator, setSelectedCreator] = useState<string | null>(null);
+
+  const { data: reels = [] } = useQuery<ReelData[]>({
+    queryKey: ['/api/reels'],
+  });
+
+  const filteredReels = selectedCreator 
+    ? reels.filter(r => r.username === selectedCreator)
+    : reels;
 
   const handleTagReel = () => {
-    console.log(`Tagging reel ${selectedReel?.id} as ${videoType}`);
+    console.log(`Tagging reel ${selectedReel?.url} as ${videoType}`);
     setSelectedReel(null);
     setVideoType("");
   };
 
-  const untaggedCount = mockReels.filter(r => !r.videoType).length;
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  const untaggedCount = filteredReels.length;
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Video Tagging</h1>
-          <p className="text-muted-foreground">Categorize your reels for better analytics</p>
-        </div>
-        <Badge variant="secondary">{untaggedCount} untagged</Badge>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockReels.map((reel) => (
-          <Card key={reel.id} className="overflow-hidden">
-            <div className="relative aspect-[9/16] bg-muted">
-              <img
-                src={reel.thumbnail}
-                alt={reel.caption}
-                className="w-full h-full object-cover"
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-card border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+            <div>
+              <h1 className="text-2xl font-bold">Video Tagging</h1>
+              <p className="text-muted-foreground">
+                {selectedCreator ? "Categorize reels for selected creator" : "Categorize your reels for better analytics"}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <CreatorSelector 
+                selectedCreator={selectedCreator} 
+                onCreatorChange={setSelectedCreator}
               />
-              {reel.videoType && (
-                <Badge className="absolute top-2 right-2">
-                  {reel.videoType}
-                </Badge>
-              )}
+              <Badge variant="secondary">{untaggedCount} untagged</Badge>
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6">
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {filteredReels.map((reel, index) => (
+          <Card key={reel.url || index} className="overflow-hidden">
+            <div className="relative aspect-[9/16] bg-muted flex items-center justify-center">
+              <i className="fas fa-video text-6xl text-muted-foreground/20"></i>
+              <div className="absolute bottom-2 right-2">
+                <Badge variant="secondary">@{reel.username}</Badge>
+              </div>
             </div>
             <CardContent className="p-4">
-              <p className="text-sm mb-3 line-clamp-2">{reel.caption}</p>
+              <p className="text-sm mb-3 line-clamp-2">{reel.caption || 'No caption'}</p>
               <div className="grid grid-cols-3 gap-2 mb-3 text-xs text-muted-foreground">
                 <div>
-                  <div className="font-medium text-foreground">{reel.views}</div>
+                  <div className="font-medium text-foreground">{formatNumber(reel.views)}</div>
                   <div>Views</div>
                 </div>
                 <div>
-                  <div className="font-medium text-foreground">{reel.likes}</div>
+                  <div className="font-medium text-foreground">{formatNumber(reel.likes)}</div>
                   <div>Likes</div>
                 </div>
                 <div>
-                  <div className="font-medium text-foreground">{reel.comments}</div>
+                  <div className="font-medium text-foreground">{formatNumber(reel.comments)}</div>
                   <div>Comments</div>
                 </div>
               </div>
               <Button
-                variant={reel.videoType ? "outline" : "default"}
+                variant="default"
                 className="w-full"
                 size="sm"
                 onClick={() => setSelectedReel(reel)}
               >
-                {reel.videoType ? "Re-tag" : "Tag Video"}
+                Tag Video
               </Button>
             </CardContent>
           </Card>
@@ -145,16 +127,10 @@ export default function VideoTagging() {
             <DialogTitle>Tag Video Type</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="aspect-[9/16] bg-muted rounded-lg overflow-hidden max-h-80">
-              {selectedReel && (
-                <img
-                  src={selectedReel.thumbnail}
-                  alt={selectedReel.caption}
-                  className="w-full h-full object-cover"
-                />
-              )}
+            <div className="aspect-[9/16] bg-muted rounded-lg overflow-hidden max-h-80 flex items-center justify-center">
+              <i className="fas fa-video text-6xl text-muted-foreground/20"></i>
             </div>
-            <p className="text-sm text-muted-foreground">{selectedReel?.caption}</p>
+            <p className="text-sm text-muted-foreground">{selectedReel?.caption || 'No caption'}</p>
             <Select value={videoType} onValueChange={setVideoType}>
               <SelectTrigger>
                 <SelectValue placeholder="Select video type" />
@@ -178,6 +154,8 @@ export default function VideoTagging() {
           </div>
         </DialogContent>
       </Dialog>
+        </main>
+      </div>
     </div>
   );
 }

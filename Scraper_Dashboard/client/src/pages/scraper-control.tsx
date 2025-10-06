@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Sidebar from "@/components/sidebar";
+import ThemeToggle from "@/components/theme-toggle";
 
 interface ScraperStatus {
   status: 'idle' | 'queued' | 'running' | 'fetching_metrics' | 'ingesting' | 'completed' | 'failed';
@@ -86,14 +88,24 @@ export default function ScraperControl() {
   const isRunning = status && (status.status === 'running' || status.status === 'fetching_metrics' || status.status === 'queued' || status.status === 'ingesting');
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Scraper Control</h1>
-          <p className="text-muted-foreground">Manually trigger Instagram data scraping</p>
-        </div>
-        {getStatusBadge()}
-      </div>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-card border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold">Scraper Control</h1>
+              <p className="text-muted-foreground">Manually trigger Instagram data scraping</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {getStatusBadge()}
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6">
 
       <div className="grid gap-6">
         <Card>
@@ -186,6 +198,8 @@ export default function ScraperControl() {
             </div>
           </CardContent>
         </Card>
+      </div>
+        </main>
       </div>
     </div>
   );

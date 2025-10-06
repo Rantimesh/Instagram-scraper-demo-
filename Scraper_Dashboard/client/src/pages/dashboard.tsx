@@ -9,11 +9,23 @@ import ScraperStatus from "@/components/scraper-status";
 import TwoFAModal from "@/components/modals/two-fa-modal";
 import CreatorSelector from "@/components/creator-selector";
 import ThemeToggle from "@/components/theme-toggle";
+import { useQuery } from "@tanstack/react-query";
+
+interface ReelData {
+  username: string;
+  likes: number;
+  comments: number;
+  views: number;
+}
 
 export default function Dashboard() {
   const [timeFilter, setTimeFilter] = useState("7d");
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState<string | null>(null);
+
+  const { data: reels = [] } = useQuery<ReelData[]>({
+    queryKey: ['/api/reels'],
+  });
 
   const timeFilters = [
     { label: "7d", value: "7d" },
@@ -25,10 +37,22 @@ export default function Dashboard() {
     { label: "All", value: "all" },
   ];
 
+  const filteredReels = selectedCreator 
+    ? reels.filter(r => r.username === selectedCreator)
+    : reels;
+
+  const totalReels = filteredReels.length;
+  const totalLikes = filteredReels.reduce((sum, r) => sum + (r.likes > 0 ? r.likes : 0), 0);
+  const totalComments = filteredReels.reduce((sum, r) => sum + r.comments, 0);
+  const totalViews = filteredReels.reduce((sum, r) => sum + r.views, 0);
+  const avgEngagement = totalViews > 0 
+    ? ((totalLikes + totalComments) / totalViews * 100).toFixed(1)
+    : '0.0';
+
   const mockStats = {
     followers: { current: "142,856", change: "+2.4% from last week", changeType: "positive" as const },
-    totalReels: { current: "847", change: "+12 this week", changeType: "positive" as const },
-    avgEngagement: { current: "7.8%", change: "-0.3% from last week", changeType: "negative" as const },
+    totalReels: { current: totalReels.toString(), change: "+12 this week", changeType: "positive" as const },
+    avgEngagement: { current: `${avgEngagement}%`, change: "-0.3% from last week", changeType: "negative" as const },
     lastRun: { current: "2h ago", change: "Successful", changeType: "positive" as const },
   };
 

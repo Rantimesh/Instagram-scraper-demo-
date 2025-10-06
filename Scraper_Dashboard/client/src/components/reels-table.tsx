@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 
 interface ReelsTableProps {
   timeFilter: string;
+  selectedCreator?: string | null;
 }
 
 interface Reel {
@@ -20,7 +21,7 @@ interface Reel {
   datePosted: string;
 }
 
-export default function ReelsTable({ timeFilter }: ReelsTableProps) {
+export default function ReelsTable({ timeFilter, selectedCreator }: ReelsTableProps) {
   const [videoType, setVideoType] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -94,7 +95,7 @@ export default function ReelsTable({ timeFilter }: ReelsTableProps) {
   };
 
   // Use real data if available
-  const reels = apiReels.length > 0 ? apiReels : mockReels.map(m => ({
+  let reels = apiReels.length > 0 ? apiReels : mockReels.map(m => ({
     username: 'sample_user',
     url: `https://instagram.com/reel/${m.instagramId}`,
     likes: parseInt(m.likes.replace('K', '000').replace('M', '000000').replace('.', '')),
@@ -106,6 +107,11 @@ export default function ReelsTable({ timeFilter }: ReelsTableProps) {
     videoUrl: '',
     datePosted: m.datePosted
   }));
+
+  // Filter by selected creator if specified
+  if (selectedCreator && selectedCreator !== 'all') {
+    reels = reels.filter(reel => reel.username === selectedCreator);
+  }
 
   const totalPages = Math.ceil(reels.length / itemsPerPage);
   const paginatedReels = reels.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
